@@ -5,15 +5,23 @@ import io.getarrays.userservice.domain.Role;
 import io.getarrays.userservice.repo.RoleRepo;
 import io.getarrays.userservice.repo.UserRepo;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @Slf4j
-public class UserServiceImpl implements UserService{
+public class UserServiceImpl implements UserService, UserDetailsService {
 
     private final UserRepo userRepo;
     private final RoleRepo roleRepo;
@@ -21,6 +29,25 @@ public class UserServiceImpl implements UserService{
     public UserServiceImpl(UserRepo userRepo, RoleRepo roleRepo) {
         this.userRepo = userRepo;
         this.roleRepo = roleRepo;
+    }
+
+    @Transactional
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        Optional<AppUser> user = userRepo.findByUsername(username);
+        if (user.isEmpty()) {
+            log.error("user not found in the DATABASE");
+            throw new UsernameNotFoundException("user not found in the DATABASE");
+        } else {
+            log.info("User found in the DB {}", username);
+        }
+
+        List<SimpleGrantedAuthority> authorities = user.get().getRoles()
+                .stream()
+                .map(role -> new SimpleGrantedAuthority(role.getName()))
+                .collect(Collectors.toList());
+
+        return new org.springframework.security.core.userdetails.User(username, user.get().getPassword(), authorities);
     }
 
     @Transactional
@@ -62,4 +89,6 @@ public class UserServiceImpl implements UserService{
         log.info("fetching users");
         return userRepo.findAll();
     }
+
+
 }
