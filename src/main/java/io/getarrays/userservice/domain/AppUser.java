@@ -14,7 +14,7 @@ import java.util.Collection;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "utilisateur_table")
+@Table(name = "table_user")
 public class AppUser {
 
     @Id

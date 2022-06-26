@@ -27,7 +27,7 @@ public class UserServiceImpl implements UserService, UserDetailsService {
     private final RoleRepo roleRepo;
     private final PasswordEncoder passwordEncoder;
 
-    public UserServiceImpl(@Lazy UserRepo userRepo,@Lazy RoleRepo roleRepo, @Lazy PasswordEncoder passwordEncoder) {
+    public UserServiceImpl(UserRepo userRepo, RoleRepo roleRepo,  PasswordEncoder passwordEncoder) {
         this.userRepo = userRepo;
         this.roleRepo = roleRepo;
         this.passwordEncoder = passwordEncoder;

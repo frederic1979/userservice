@@ -1,10 +1,11 @@
 package io.getarrays.userservice.config;
-import io.getarrays.userservice.filter.CustomAuthenticationFilter;
-import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
+import io.getarrays.userservice.security.filter.CustomAuthenticationFilter;
+import io.getarrays.userservice.security.AuthoritiesConstants;
+import io.getarrays.userservice.security.filter.CustomAuthorizationFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Lazy;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -13,6 +14,7 @@ import org.springframework.security.config.annotation.web.configuration.WebSecur
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
@@ -22,31 +24,32 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter{
     private final UserDetailsService userDetailsService;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
 
-    public SecurityConfig(@Lazy UserDetailsService userDetailsService,@Lazy BCryptPasswordEncoder bCryptPasswordEncoder) {
+    public SecurityConfig( UserDetailsService userDetailsService, BCryptPasswordEncoder bCryptPasswordEncoder) {
         this.userDetailsService = userDetailsService;
         this.bCryptPasswordEncoder = bCryptPasswordEncoder;
     }
 
-    @Bean
-    BCryptPasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
+
 
     @Override
-    public void configure(AuthenticationManagerBuilder authenticationManagerBuilder) throws Exception {
-        authenticationManagerBuilder.userDetailsService(userDetailsService).passwordEncoder(bCryptPasswordEncoder);
+    public void configure(AuthenticationManagerBuilder auth) throws Exception {
+        auth.userDetailsService(userDetailsService).passwordEncoder(bCryptPasswordEncoder);
     }
 
     @Override
     public void configure(HttpSecurity http) throws Exception {
-        CustomAuthenticationFilter customAuthenticationFilter = new CustomAuthenticationFilter(authenticationManagerBean());
-        customAuthenticationFilter.setFilterProcessesUrl("api/login");
+/*        CustomAuthenticationFilter customAuthenticationFilter = new CustomAuthenticationFilter(authenticationManagerBean());
+        customAuthenticationFilter.setFilterProcessesUrl("api/login") ;*/
 
         http.csrf().disable();
         http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
-        http.authorizeRequests().antMatchers("api/login").permitAll();
-        http.authorizeRequests().antMatchers("api/user").hasAnyAuthority("ROLE_USER");
-        http.addFilter(customAuthenticationFilter);
+        http.authorizeRequests().antMatchers("login/**").permitAll();
+        http.authorizeRequests().antMatchers(HttpMethod.GET,"api/user/**").hasAnyAuthority(AuthoritiesConstants.USER, AuthoritiesConstants.MANAGER);
+        http.authorizeRequests().antMatchers(HttpMethod.POST,"api/user/save/**").hasAnyAuthority(AuthoritiesConstants.ADMIN);
+        http.authorizeRequests().antMatchers(HttpMethod.GET,"api/users").hasAnyAuthority(AuthoritiesConstants.MANAGER);
+        http.authorizeRequests().anyRequest().authenticated();
+        http.addFilter(new CustomAuthenticationFilter(authenticationManagerBean()));
+        http.addFilterBefore(new CustomAuthorizationFilter(), UsernamePasswordAuthenticationFilter.class);
 
     }
 
