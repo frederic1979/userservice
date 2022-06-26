@@ -5,6 +5,7 @@ import io.getarrays.userservice.domain.AppUser;
 import io.getarrays.userservice.domain.Role;
 import io.getarrays.userservice.dto.AppUserDto;
 import io.getarrays.userservice.service.UserService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
