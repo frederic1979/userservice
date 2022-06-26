@@ -7,18 +7,11 @@ import com.auth0.jwt.interfaces.DecodedJWT;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.getarrays.userservice.domain.AppUser;
 import io.getarrays.userservice.domain.Role;
-import io.getarrays.userservice.dto.AppUserDto;
 import io.getarrays.userservice.service.UserService;
 import io.getarrays.userservice.utils.JwtUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
-
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -57,7 +50,7 @@ public class UserRessource {
     }
 
 
-    @GetMapping("/refreshtoken")
+    @GetMapping("/token/refresh")
     public void refreshtoken(HttpServletRequest request, HttpServletResponse response) throws IOException {
         String authorizationHeader = request.getHeader(AUTHORIZATION);
         if (StringUtils.isNotBlank(authorizationHeader) && authorizationHeader.startsWith("Bearer ")) {
